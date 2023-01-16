@@ -1,72 +1,93 @@
 import { httpServer } from "./src/http_server/index.js";
-import { WebSocketServer } from 'ws'
-import { Button, mouse, left, right, up, down, straightTo, Region, Point } from '@nut-tree/nut-js';
+import { createInterface } from 'node:readline'
+import { WebSocketServer, createWebSocketStream } from 'ws'
+import { Button, mouse, left, right, up, down, straightTo, Region, getActiveWindow, Point, screen, FileType, imageResource } from '@nut-tree/nut-js';
+import { stdin, stdout } from 'node:process';
+import Jimp from 'jimp'
+import path from 'node:path';
 
 const HTTP_PORT = 8181;
 const wss_PORT = 8080;
-
-process.on('beforeExit', (code) => {
-  console.log('on before exit code: ', code);
-})
-
-process.on('SIGINT', () => {
-  prevent
-  console.log('Received SIGINT. Press Control-D to exit.');
-  console.log(wss.clients);
-
-});
 
 httpServer.listen(HTTP_PORT, () => {
   console.log(`Start static http server on the ${HTTP_PORT} port!`)
 });
 
-const wss = new WebSocketServer({
-  port: wss_PORT
-})
+// const rl = createInterface({
+//   input: stdin,
+//   output: stdout,
+//   prompt: 'server: >'
+// })
+// rl.prompt();
+// rl.on('line', line => {
+//   if (line.includes('.exit')) {
+//     process.exit()
+//   }
+// })
+
+const wss = new WebSocketServer({ port: wss_PORT });
 
 wss.on('connection', async (ws, req) => {
 
+  console.log('IP remote:', req.socket.remoteAddress);
+  console.log(req.headers['host']);
+  console.log(req.headers['origin']);
+
+  const wsStream = createWebSocketStream(ws, {
+    encoding: 'utf-8'
+  });
+  console.log("Websocket server connected");
+
+
   ws.on('message', async mes => {
 
-    const incomingMess = mes.toString().trim();
-    console.log('Client send: ', incomingMess);
-    let cmd = (incomingMess);
-    let value = [];
-    if (incomingMess.includes(' ')) {
-      [cmd, ...value] = incomingMess.split(' ');
-    }
-    console.log(cmd, value);
-    const action = cmd.split('_').shift()
-    const figure = cmd.includes('_') ? cmd.split('_').pop() : '';
+    console.log('Client send: ', mes.toString());
+    const [, ...value] = mes.toString().split(' ');
+    const cmd = (mes.toString().split(' ').shift());
+    ws.send(cmd);
+    const startPos = await mouse.getPosition();
 
-    console.log(figure);
-    // ws.send(incomingMess);
-    const toDo = {
-      rectangle: () => rectangle(100, 200),
-      // rectangle: console.log('rectangle(100, 200)'),
-      square: () => square(100),
-      circle: () => circle(100),
-      up: () => mouse.move(up(100)),
-      // up: console.log('mouse.move(up(100))'),
-      down: () => mouse.move(down(100)),
-      left: () => mouse.move(left(100)),
-      right: () => mouse.move(right(100)),
-      position: async () => {
-        const { x, y } = await mouse.getPosition();
-        console.log(`${incomingMess} ${x}, ${y}`);
-        ws.send(`${incomingMess} ${x},${y}`)
-      },
-      scrn: () => snapshot()
-    }
-    // console.log(figure);
-    try {
-      toDo[figure]()
+    const subCmd = cmd.split('_').shift();
+    const subAct = cmd.split('_').pop();
 
-    } catch (error) {
-      console.log('Unknown command ', cmd);
+    const action = {
+      rectangle: async (v) => rectangle(v),
+      square: async (v) => square(v),
+      circle: async (v) => circle(v),
     }
+    // switch (subCmd) {
+    switch (cmd) {
+      // case 'draw':
+      //   (subAct) => {
+      //     console.log(subCmd, subAct, value);
+      //     subAct(value)
+      //   }
+      //   break
+      case 'draw_circle':
+        await circle(Number(value[0]))
+        break;
+      case 'draw_square':
+        await square(Number(value[0]))
+        break;
+      case 'draw_rectangle':
+        await rectangle(Number(value[0]), Number(value[1]))
+        break;
+      case 'prnt_scrn':
+        await snapshot()
+        break;
+      case 'mouse_position':
+        console.log('mouse_position');
+        break;
 
+      default:
+        break;
+    }
   });
+
+
+  ws.onopen = (ev) => {
+    console.log('WS opened. ev: ', ev.target);
+  }
 
   ws.on('close', () => {
     console.log('WS closing');
@@ -97,8 +118,11 @@ const rectangle = async (deltaX, deltaY) => {
 };
 
 const circle = async (radius) => {
-  const centrePoint = await mouse.getPosition();
-  const startPoint = new Point(centrePoint.x + radius, centrePoint.y);
+
+  let { x, y } = await mouse.getPosition();
+  x += radius;
+
+  const startPoint = new Point(x, y);
 
   await mouse.setPosition(startPoint);
   await mouse.pressButton(Button.LEFT);
@@ -109,14 +133,13 @@ const circle = async (radius) => {
     const deltaX = radius - Math.round(radius * Math.cos(rad));
     const deltaY = Math.round(radius * Math.sin(rad));
 
-    const x = startPoint.x - deltaX;
-    const y = startPoint.y + deltaY;
+    x = startPoint.x - deltaX;
+    y = startPoint.y + deltaY;
 
     await mouse.move(straightTo(new Point(x, y)));
   }
   await mouse.releaseButton(Button.LEFT);
 };
-
 
 const snapshot = async () => {
   const actWin = await getActiveWindow();
