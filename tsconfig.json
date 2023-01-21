@@ -1,11 +1,12 @@
 {
-  "exclude": ["node_modules", "__*.*"],
-  "include": ["./src", "index.ts"],
+  "exclude": ["node_modules", "./front/*.*", "__*.*"],
+  "include": ["./", "./**/*.ts", "./**/*.js"],
   "compilerOptions": {
     "lib": ["es2021"],
     "module": "Node16",
     "target": "ES6",
     "esModuleInterop": true,
+    "allowJs": true,
     "watch": false,
     "rootDir": "./" /* Specify the root folder within your source files. */,
     "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,

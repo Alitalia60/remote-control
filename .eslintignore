@@ -1,0 +1,5 @@
+dist
+front
+test
+node_modules
+*.config.js
