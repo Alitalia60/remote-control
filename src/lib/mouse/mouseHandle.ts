@@ -1,5 +1,6 @@
 
 import { mouse, up, down, right, left } from '@nut-tree/nut-js';
+import internal from 'node:stream';
 
 export const mouseMove = async (direction: string, distance: string[]) => {
   const shift = Number(...distance)
@@ -25,8 +26,8 @@ export const mouseMove = async (direction: string, distance: string[]) => {
   }
 }
 
-export const mousePosition = async (): Promise<string> => {
+export const mousePosition = async (duplex: internal.Duplex): Promise<void> => {
   const { x, y } = await mouse.getPosition();
-  return `${x},${y}`;
+  duplex.write(`mouse_position ${x},${y}`);
 
 }

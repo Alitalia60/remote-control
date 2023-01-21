@@ -1,6 +1,5 @@
-import { WebSocketServer, createWebSocketStream } from 'ws'
+import { WebSocketServer } from 'ws'
 import { config as dotEnvConfig } from 'dotenv'
-import util from 'node:util'
 
 import { httpServer } from "./src/http_server/index";
 import { wssHandle } from './src/lib/wss_utils/wssHandle';
@@ -15,14 +14,17 @@ httpServer.listen(HTTP_PORT, () => {
   console.log(`Start static http server on the ${HTTP_PORT} port!`)
 });
 
+httpServer.on('close', () => {
+  console.log('http server closed');
+
+})
 const wss = new WebSocketServer({
   port: WSS_PORT
 })
 console.log('Websocket server: ', wss.address());
 
-
 wss.on('close', () => {
-  console.log('WSS closing');
+  console.log('WSS closed');
 })
 
 wss.on('connection', wssHandle);
@@ -30,14 +32,17 @@ wss.on('connection', wssHandle);
 process.on('exit', (code) => console.log('Process exit with code: ', code));
 
 process.on('SIGINT', () => {
-  wss.clients.forEach(client => {
-    client.terminate();
-    client.close();
-  })
+  wss.clients.forEach((socket) => {
+    // Soft close
+    socket.close();
+    wss.clients.forEach((socket) => {
+      const state = socket.readyState;
+      if (state === 1 || state === 2) {
+        socket.terminate();
+      }
+    });
+  });
+  wss.close();
 
-  wss.close(err => {
-    if (err) console.log('Wbsocket server closed:', err)
-  }
-  )
+  httpServer.close();
 });
-

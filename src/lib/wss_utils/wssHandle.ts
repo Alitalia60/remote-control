@@ -5,19 +5,17 @@ import { mouseMove, mousePosition } from '../mouse/mouseHandle';
 import { rectangle } from '../figures/rectangle';
 import { circle } from '../figures/circle';
 import { snapShotBuff } from '../capture/snapShotBuff';
-import { ServerResponse } from 'http';
 
 export const wssHandle = async (ws: WebSocket) => {
 
-  // console.log('Websocket server: ', req.socket?.remoteAddress);
   console.log('Client connected');
 
   ws.on('open', () => {
-    console.log('webSocket is opened');
+    console.log('webSocket open');
   })
 
   ws.on('close', () => {
-    console.log('webSocket has closed');
+    console.log('webSocket closed');
   })
 
   const wsStream = createWebSocketStream(ws, { encoding: 'utf8', decodeStrings: false });
@@ -26,46 +24,27 @@ export const wssHandle = async (ws: WebSocket) => {
     console.log('---------------------------------');
     console.log('Client send: ', incomingMess);
 
-    const [cmd, ...value] = incomingMess.split(' ');
+    const [cmnd, ...value] = incomingMess.split(' ');
 
-    switch (cmd) {
-      case 'mouse_up': await mouseMove('up', value)
-        break;
+    interface IAction { [key: string]: () => Promise<void | boolean | string> | boolean }
 
-      case 'mouse_down': await mouseMove('down', value)
-        break;
-
-      case 'mouse_left': await mouseMove('left', value)
-        break;
-
-      case 'mouse_right': await mouseMove('right', value)
-        break;
-
-      case 'mouse_position':
-        const { x, y } = await mouse.getPosition();
-        wsStream.write(`${incomingMess} ${x},${y}`);
-        break;
-
-      case 'draw_rectangle': await rectangle(value)
-        break;
-
-      case 'draw_square': await rectangle(value)
-        break;
-
-      case 'draw_circle': await circle(value)
-        break;
-
-      // case 'prnt_scrn': snapShotFile()
-      case 'prnt_scrn': snapShotBuff()
-        .then(buf => {
+    const actions: IAction = {
+      mouse_up: () => mouseMove('up', value),
+      mouse_down: () => mouseMove('down', value),
+      mouse_left: () => mouseMove('left', value),
+      mouse_right: () => mouseMove('right', value),
+      draw_circle: () => circle(value),
+      draw_rectangle: () => rectangle(value),
+      draw_square: () => rectangle(value),
+      mouse_position: () => mousePosition(wsStream),
+      prnt_scrn: () => snapShotBuff()
+        .then((buf) => {
           wsStream.write(`prnt_scrn ${buf}`)
         })
-        .catch(err => wsStream.write('Out_of_screen!'))
-        break;
+        .catch((err) => wsStream.write('Out_of_screen!')),
+    };
 
-      default:
-        wsStream.write('Unknown_command')
-    }
+    actions[cmnd]();
 
   });
 

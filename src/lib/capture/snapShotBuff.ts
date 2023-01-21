@@ -1,17 +1,12 @@
 import { Region, getActiveWindow, mouse, screen } from '@nut-tree/nut-js';
 import Jimp from 'jimp';
+import { setRegion } from '../figures/setRegion';
 
-export const snapShotBuff = async () => {
+export const snapShotBuff = async (): Promise<string> => {
 
-  const actWin = await getActiveWindow();
-  const actWinReg = await actWin.region;
-  let { x, y } = await mouse.getPosition();
-  x = Math.max(x - 100, actWinReg.left);
-  y = Math.max(y - 100, actWinReg.top);
+  const { x, y } = await setRegion(200, 200);
 
   const captureReg = new Region(x, y, 200, 200);
-  screen.config.highlightDurationMs = 500;
-  await screen.highlight(captureReg);
 
   return new Promise(async (resolve, rejects): Promise<void> => {
     try {
@@ -23,6 +18,7 @@ export const snapShotBuff = async () => {
         height: image.height,
       });
       const value = await jimpImage.getBufferAsync(Jimp.MIME_PNG);
+
       resolve(value.toString('base64'))
 
     } catch (error) {

@@ -1,11 +1,16 @@
 import { Button, mouse, straightTo, Point } from '@nut-tree/nut-js';
+import { setRegion } from './setRegion';
 
 export const circle = async (value: string[]): Promise<void> => {
 
+
   const radius = Number(...value);
 
-  const circleCentre = await mouse.getPosition();
-  const startPoint = new Point(circleCentre.x + radius, circleCentre.y);
+  const leftTopPoint = await setRegion(radius * 2, radius * 2);
+
+  const circleCentre = new Point(leftTopPoint.x + radius, leftTopPoint.y + radius);
+
+  const startPoint = new Point(leftTopPoint.x + radius * 2, leftTopPoint.y + radius);
 
   await mouse.setPosition(startPoint);
   await mouse.pressButton(Button.LEFT);
