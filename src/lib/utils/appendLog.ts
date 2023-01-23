@@ -1,10 +1,8 @@
 import { appendFile } from 'node:fs/promises';
-
-const LogginMessage = true;
+import { LOG_FILE } from '../../../index'
 
 export async function appendLog(mes: string) {
-  if (LogginMessage) {
-
+  if (LOG_FILE) {
     mes = `${new Date()}: \n ${mes} \n`;
     await appendFile('./log.txt', mes, { encoding: 'utf-8', flag: 'a+' })
   }

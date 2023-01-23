@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 import { config as dotEnvConfig } from 'dotenv'
 
 import { httpServer } from "./src/http_server/index";
@@ -15,7 +15,10 @@ httpServer.listen(HTTP_PORT, () => {
   console.log('---------------------------------------------')
   writeMessages(`Start static http server on the ${HTTP_PORT} port!`)
 });
-httpServer.on('close', () => writeMessages('http server closed'));
+httpServer.on('close', () => {
+  writeMessages('http server closed');
+  process.exit(0)
+});
 httpServer.on('error', (err) => writeError(`Http server: ${err.message}`));
 httpServer.on('clientError', (err) => writeError(`Client http : ${err.message}`));
 
@@ -42,5 +45,5 @@ process.on('SIGINT', () => {
   });
   wss.close();
   httpServer.close();
-  process.exit(0)
+
 });

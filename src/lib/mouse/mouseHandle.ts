@@ -3,7 +3,9 @@ import { mouse, up, down, right, left } from '@nut-tree/nut-js';
 import internal from 'node:stream';
 
 export const mouseMove = async (direction: string, distance: string[]) => {
+
   const shift = Number(...distance)
+
   switch (direction) {
     case 'up':
       await mouse.move(up(shift))

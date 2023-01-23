@@ -22,7 +22,7 @@ export const wssHandle = async (ws: WebSocket) => {
 
   wsStream.on('data', async (incomingMess: string) => {
     writeMessages('---------------------------------');
-    writeMessages(`Client send: , ${incomingMess}`);
+    writeMessages(`Client send: ${incomingMess}`);
 
     const [cmnd, ...value] = incomingMess.split(' ');
 
