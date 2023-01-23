@@ -12,6 +12,7 @@ export const rectangle = async (value: string[]) => {
 
   const { x, y } = await setRegion(dimX, dimY);
 
+
   await mouse.setPosition(new Point(x, y));
   await mouse.pressButton(Button.LEFT);
   await mouse.move(right(dimX));

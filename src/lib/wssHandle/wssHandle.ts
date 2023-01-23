@@ -1,28 +1,28 @@
 import { WebSocket, createWebSocketStream } from 'ws';
-import { mouse } from '@nut-tree/nut-js';
 
 import { mouseMove, mousePosition } from '../mouse/mouseHandle';
 import { rectangle } from '../figures/rectangle';
 import { circle } from '../figures/circle';
 import { snapShotBuff } from '../capture/snapShotBuff';
+import { writeMessages } from '../utils/writeMessages';
 
 export const wssHandle = async (ws: WebSocket) => {
 
-  console.log('Client connected');
+  writeMessages('Client connected');
 
   ws.on('open', () => {
-    console.log('webSocket open');
+    writeMessages('webSocket open');
   })
 
   ws.on('close', () => {
-    console.log('webSocket closed');
+    writeMessages('webSocket closed');
   })
 
   const wsStream = createWebSocketStream(ws, { encoding: 'utf8', decodeStrings: false });
 
   wsStream.on('data', async (incomingMess: string) => {
-    console.log('---------------------------------');
-    console.log('Client send: ', incomingMess);
+    writeMessages('---------------------------------');
+    writeMessages(`Client send: , ${incomingMess}`);
 
     const [cmnd, ...value] = incomingMess.split(' ');
 
@@ -49,7 +49,7 @@ export const wssHandle = async (ws: WebSocket) => {
   });
 
   wsStream.on('close', () => {
-    console.log('wsStream has closed');
+    writeMessages('wsStream has closed');
 
   });
 

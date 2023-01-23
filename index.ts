@@ -1,36 +1,34 @@
-import { WebSocketServer } from 'ws'
+import { WebSocketServer, WebSocket } from 'ws';
 import { config as dotEnvConfig } from 'dotenv'
 
 import { httpServer } from "./src/http_server/index";
-import { wssHandle } from './src/lib/wss_utils/wssHandle';
+import { wssHandle } from './src/lib/wssHandle/wssHandle';
+import { writeMessages, writeError } from './src/lib/utils/writeMessages';
 
 dotEnvConfig();
 
-const HTTP_PORT: number = Number(process.env.HTTP_PORT) || 8181
-const WSS_PORT: number = Number(process.env.WSS_PORT) || 8080
+const HTTP_PORT: number = Number(process.env.HTTP_PORT) || 8181;
+const WSS_PORT: number = Number(process.env.WSS_PORT) || 8080;
+export const LOG_FILE = Number(process.env.LOG_FILE) || 0;
 
 httpServer.listen(HTTP_PORT, () => {
   console.log('---------------------------------------------')
-  console.log(`Start static http server on the ${HTTP_PORT} port!`)
+  writeMessages(`Start static http server on the ${HTTP_PORT} port!`)
 });
+httpServer.on('close', () => writeMessages('http server closed'));
+httpServer.on('error', (err) => writeError(`Http server: ${err.message}`));
+httpServer.on('clientError', (err) => writeError(`Client http : ${err.message}`));
 
-httpServer.on('close', () => {
-  console.log('http server closed');
+const wss = new WebSocketServer({ port: WSS_PORT });
+console.log(`Websocket server: , ${wss.address()}`);
 
-})
-const wss = new WebSocketServer({
-  port: WSS_PORT
-})
-console.log('Websocket server: ', wss.address());
-
+wss.on('error', (err) => writeError(err.message))
 wss.on('close', () => {
-  console.log('WSS closed');
-})
-
+  writeMessages('Websocket server closed')
+});
 wss.on('connection', wssHandle);
 
 process.on('exit', (code) => console.log('Process exit with code: ', code));
-
 process.on('SIGINT', () => {
   wss.clients.forEach((socket) => {
     // Soft close
@@ -43,6 +41,6 @@ process.on('SIGINT', () => {
     });
   });
   wss.close();
-
   httpServer.close();
+  process.exit(0)
 });

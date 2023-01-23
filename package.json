@@ -2,6 +2,7 @@
     "name": "ws_task",
     "version": "1.0.0",
     "description": "Template for the WebSocket remote control task",
+    "main": "./index.ts",
     "scripts": {
         "start:dev": "nodemon ./index.ts",
         "start": "tsc && node ./dist/index.js",

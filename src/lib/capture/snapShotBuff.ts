@@ -1,4 +1,4 @@
-import { Region, getActiveWindow, mouse, screen } from '@nut-tree/nut-js';
+import { Region, screen } from '@nut-tree/nut-js';
 import Jimp from 'jimp';
 import { setRegion } from '../figures/setRegion';
 
