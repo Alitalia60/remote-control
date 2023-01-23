@@ -48,7 +48,6 @@ process.on('SIGINT', () => {
     if (err) {
       writeError(err.message)
     }
-    process.exit(0)
   });
-
+  process.exit(0)
 });
