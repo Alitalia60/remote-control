@@ -17,7 +17,7 @@ httpServer.listen(HTTP_PORT, () => {
 });
 httpServer.on('close', () => {
   writeMessages('http server closed');
-  process.exit(0)
+
 });
 httpServer.on('error', (err) => writeError(`Http server: ${err.message}`));
 httpServer.on('clientError', (err) => writeError(`Client http : ${err.message}`));
@@ -44,6 +44,11 @@ process.on('SIGINT', () => {
     });
   });
   wss.close();
-  httpServer.close();
+  httpServer.close((err) => {
+    if (err) {
+      writeError(err.message)
+    }
+    process.exit(0)
+  });
 
 });
