@@ -1,3 +1,6 @@
+/dist
+log.txt
+
 # dependencies
 /node_modules
 
@@ -14,3 +17,6 @@ Thumbs.db
 
 # Logs
 npm-debug.log
+
+#debug
+__*.*
